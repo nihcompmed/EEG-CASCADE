@@ -12,6 +12,31 @@ The repository accompanies the manuscript:
 
 ---
 
+## Software environment
+
+The analyses were performed on NIH Biowulf using Python 3.10.14.
+The recorded software versions are:
+
+| Software | Version |
+|----------|---------|
+| Python | 3.10.14 |
+| NumPy | 2.2.6 |
+| SciPy | 1.15.2 |
+| pandas | 2.3.3 |
+| scikit-learn | 1.7.2 |
+| Matplotlib | 3.9.1 |
+| MNE-Python | 1.12.1 |
+| JupyterLab | 4.5.7 |
+| Notebook | 7.5.6 |
+
+Batch experiments used NIH Biowulf's Swarm job-submission system.
+Individual analysis scripts can also be run directly with Python;
+Swarm is required only for the supplied cluster submission commands.
+Paths in the generators and notebooks must be adjusted to the local
+code, data, and results directories.
+
+---
+
 # Repository Organization
 
 ## Core EEG-CASCADE (DynML) Models
@@ -196,13 +221,13 @@ EEG-CASCADE performs one-step forecasting of the patient-specific PCA feature st
 
 `x_t -> x_(t+1)`
 
-Each input state is mapped into the initial conditions of a dynamical reservoir composed of **10 independent Rössler systems**.
+Each input state is mapped into the initial conditions of a dynamical reservoir. The sampled-window analyses used **10 independent Rössler systems**. The continuous analysis additionally evaluated reservoir counts of **5, 10, 20, 30, 40, and 50**.
 
 The resulting reservoir state is used by a ridge-regularized linear readout to forecast the subsequent EEG feature state.
 
 Only the linear readout is trained. The input projection and Rössler reservoir parameters remain fixed after initialization.
 
-Twelve predefined Rössler parameter regimes and five independent reservoir realizations are evaluated while keeping the EEG data split fixed.
+The sampled-window regime comparisons evaluated **12 parameter regimes (R0–R11)**. The continuous analysis evaluated **23 regimes (R0–R22)** across the six reservoir counts. Five reservoir realizations used seeds **1107, 1249, 1388, 1523, and 1697**, with EEG data seed **17**.
 
 ---
 
@@ -224,6 +249,23 @@ Persistence criteria used in the study were:
 
 - **3 s and 5 s** for seizure-onset detection
 - **60 s** for the primary CHB-MIT preictal early-warning analysis
+
+## Continuous-recording evaluation
+
+Continuous seizure-onset evaluation used held-out CHB-MIT recordings.
+All seizure-containing recordings and a subset of seizure-free recordings
+were reserved for testing, with training and validation sequences drawn
+from the remaining recordings.
+
+Continuous scoring used a rolling log-likelihood sum matching the
+30-s validation sequences and a scalar fifth-percentile validation
+threshold. Recordings were processed independently without concatenation.
+One alarm was counted per contiguous anomalous episode after persistence
+confirmation. False-alarm burden was calculated over interictal recording
+time outside the predefined peri-seizure exclusion intervals.
+
+The primary continuous configuration was R4 with N=10 and 3-s persistence.
+Exploratory BD analyses evaluated R0–R22 across N=5, 10, 20, 30, 40, and 50.
 
 ---
 
@@ -314,7 +356,8 @@ Please obtain both datasets from their original repositories. Raw EEG data are n
 - EEG chunk length: 15 s
 - Chunk stride: 5 s
 - Interictal sequence duration: 30 min
-- Interictal selection stride: 5 min
+- Interictal selection stride: 30 min (nonoverlapping sequences)
+- An overlap audit confirmed no shared EEG samples across the selected training, validation, and held-out test subsets.
 - Maximum interictal sequences per patient: 120
 - Approximate split: 50% training / 25% validation / 25% held-out testing
 - Primary Rössler configuration: R4
