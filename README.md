@@ -235,7 +235,7 @@ The sampled-window regime comparisons evaluated **12 parameter regimes (R0–R11
 
 EEG-CASCADE identifies seizure-associated states through degradation of forecasting likelihood relative to patient-specific interictal dynamics.
 
-The procedure consists of:
+For the sampled-window analyses, the procedure consists of:
 
 1. Compute one-step forecast residuals.
 2. Fit a diagonal Gaussian residual distribution using validation-interictal transitions.
